@@ -3,6 +3,7 @@ import argparse
 from bs4 import BeautifulSoup
 import logging
 import os
+import zipfile
 #endregion Dependencies
 
 ################################################################################
@@ -78,7 +79,8 @@ def getInfo(fileName):
     mangaInfo = Manga()
 
     # Reads file into memory
-    info = readXML (dir)
+    #info = readXML (dir)
+    info = readZIP (fileName)
     # Spruce up the soup
     parsedInfo = BeautifulSoup(info, "lxml")
 
@@ -200,6 +202,19 @@ def getInfo(fileName):
 
     return mangaInfo
 
+def readZIP (filename):
+    zf = zipfile.ZipFile ("Manga/" + filename + ".zip")
+
+    for name in [filename + "/Info.xml"]:
+        try:
+            data = zf.read(name)
+
+            zf.close()
+        except KeyError:
+            print "Info.xml could not be found"
+        else:
+            return (data)
+
 def readXML (path):
     # Open XML file and read in all data
     with open (path, 'r') as f:
@@ -207,7 +222,38 @@ def readXML (path):
     f.closed
 
     return (data)
+
+# Check that the directory in which manga exists, exists
+def checkDir (name):
+    # Check for the directory
+    if not os.path.exists ("Manga"):
+        # Directory is not there, so this is the first manga to be added; make the directory
+        os.makedirs ("Manga")
+
 #endregion Read XML
+
+# Write the new XML file
+def writeXML (data):
+    with open ("Manga/Info.xml", 'w') as f:
+        f.write (data)
+    f.closed
+
+# Add the XML file to a new zip file
+def makeZIP (name, data):
+    if not os.path.isfile ("Manga/" + name):
+        zf = zipfile.ZipFile ("Manga/%s.zip" % name, 'w')
+
+        writeXML (data)
+
+        try:
+            zf.write ("Manga/Info.xml", "%s/Info.xml" % name)
+            zf.close()
+
+            os.remove("Manga/Info.xml")
+        except:
+            print "Something bad happened :<"
+    else:
+        print "File already exists"
 
 ############################ MAIN IS RIGHT HERE ################################
 #region Main
@@ -224,9 +270,93 @@ args = parser.parse_args(['--fn', 'Two and Two','--op', '1'])
 # 1: Read an existing XML sheet titled name
 if int(args.op) == 0:
     print "Writing new XML file for: %s" % args.name
-    # createDir(args.name)
+    checkDir (args.name)
+
+    data = ""
+
+    data += "<info>\n\t<top>\n\t\t<title>%s</title>\n" % args.name
+    data += "\t\t<author>%s</author>\n" % raw_input ("Name of author: ")
+    data += "\t\t<year>%s</year>\n" % raw_input ("Year of release: ")
+    data += "\t\t<type>%s</type>\n" % raw_input ("Type: ")
+
+    x = raw_input ("Indie? ")
+    data += "\t\t<indie>%s</indie>\n\n" % x
+    
+    if (x == "N"):
+        x = raw_input ("Number of original sources: ")
+        data += "\t\t<originals>%s<\originals>\n" % x
+
+        for num in range (1, int(x) + 1):
+            data += "\t\t<original>\n\t\t\t<thisOriginal>%d</thisOriginal>\n\t\t\t<title>%s</title>" % (num, raw_input ("Title of source [%d]: " % num))
+            data += "\n\t\t</original>\n"
+
+    x = raw_input ("Number of scanlators: ")
+    data += "\t\t<scanlators>%s</scanlators>" % x
+
+    for num in range (1, int(x) + 1):
+        data += "\n\t\t<scanlator>\n\t\t\t<thisScanlator>%d</thisScanlator>\n\t\t\t" % num
+        data += "<title>%s</title>" % raw_input ("Title of scanlator [%d]: " % num)
+        data += "\n\t\t\t<website>%s</website>" % raw_input ("Website of scanlator [%d]: " % num)
+        data += "\n\t\t</scanlator>"
+
+    data += "\n\t</top>\n\n\t<content>"
+    data += "\n\t\t<finished>%s</finished>" % raw_input ("Finished? ")
+    
+    x = raw_input ("Total volumes: ")
+    data += "\n\t\t<totalVol>%s</totalVol>" % x
+    data += "\n\n"
+
+    for num in range (1, int(x) + 1):
+        data += "\t\t<volume>\n\t\t\t<thisVolume>%d</thisVolume>" % num
+        data += "\n\t\t\t<volumeName>%s</volumeName>" % raw_input ("Volume Name: ")
+        data += "\n\t\t\t<title>%s</title>" % raw_input ("Volume Title: ")
+        data += "\n\t\t\t<subtitle>%s<subtitle>" % raw_input ("Volume Subtitle: ")
+
+        y = raw_input ("Chapters in this volume: ")
+
+        data += "\n\t\t\t<volumeChapters>%s</volumeChapters>" % y
+        data += "\n\n"
+
+        for num2 in range (1, int(y) + 1):
+            data += "\t\t\t<chapter>\n\t\t\t\t<thisChapter>%d</thisChapter>" % num2
+            data += "\n\t\t\t\t<chapterName>%s</chapterName>" % raw_input ("Name of chapter [%d] Vol [%d]: " % (num2, num))
+            data += "\n\t\t\t\t<pageCount>%s</pageCount>" % raw_input ("Page Count of chapter [%d] Vol [%d]: " % (num2, num))
+            data += "\n\t\t\t\t<title>%s</title>" % raw_input ("Title of chapter [%d] Vol [%d]: " % (num2, num))
+            data += "\n\t\t\t\t<subtitle>%s</subtitle>" % raw_input ("Subtitle of chapter [%d] Vol [%d]: " % (num2, num))
+            
+            z = raw_input ("Using original? ")
+            data += "\n\t\t\t\t<usingOriginal>%s</usingOriginal>" % z
+            data += "\n\n"
+
+            if x == "Y":
+                data += "\t\t\t\t<original>\n\t\t\t\t\t<n>%s</n>" % raw_input ("Source index: ")
+                data += "\n\t\t\t\t\t<originalVolume>%s</originalVolume>" % raw_input ("Original Volume: ")
+                data += "\n\t\t\t\t\t<day>%s</day>" % raw_input ("Original Day: ")
+                data += "\n\t\t\t\t\t<month>%s</month>" % raw_input ("Original Month: ")
+                data += "\n\t\t\t\t\t<year>%s</year>" % raw_input ("Original Year: ")
+                data += "\n\t\t\t\t</original>\n\n"
+
+            data += "\t\t\t\t<scanlator>\n\t\t\t\t\t<n>%s</n>" % raw_input ("Scanlator Index: ")
+            data += "\n\t\t\t\t\t<day>%s</day>" % raw_input ("Scanned Day: ")
+            data += "\n\t\t\t\t\t<month>%s</month>" % raw_input ("Scanned Month: ")
+            data += "\n\t\t\t\t\t<year>%s</year>" % raw_input ("Scanned Year: ")
+            data += "\n\t\t\t\t</scanlator>\n\t\t\t</chapter>"
+
+            if not num2 == int(y):
+                data += "\n\n"
+
+        data += "\n\t\t</volume>"
+
+        if not num == int(x):
+            data += "\n\n"
+
+    data += "\n\t</content>\n</info>"
+
+    makeZIP (args.name, data)
+    print readZIP ("Manga/%s" % args.name)
+
 elif int(args.op) == 1:
-    print "Getting sheet for:  %s" % args.name
+    print "Opening \"%s.manga\"..." % args.name
 
     # Read XML and throw info into class
     info = getInfo(args.name)
@@ -253,11 +383,28 @@ elif int(args.op) == 1:
         print "Volume [%s]:" % info.volumes[vol].name
         print "   Title:    %s" % info.volumes[vol].title
         print "   Subtitle: %s" % info.volumes[vol].subtitle
-        print "Chapters in this volume:"
+        print "Chapters in this volume:\n"
 
         for chap in info.volumes[vol].chapters:
             print "Chapter [%s]:" % info.volumes[vol].chapters[chap].name
             print "   Title: %s" % info.volumes[vol].chapters[chap].title
             print "   Subtitle: %s" % info.volumes[vol].chapters[chap].subtitle
+            print "   Page Count: %s" % info.volumes[vol].chapters[chap].pages
+
+            if info.volumes[vol].chapters[chap].hasOriginal == "Y":
+                print "   This chapter was featured originally in:"
+
+                if info.volumes[vol].chapters[chap].originalDay == None:
+                     print "      %s Vol. %s [%s %s]" % (info.volumes[vol].chapters[chap].originalN,
+                                                 info.volumes[vol].chapters[chap].originalVolume,
+                                                 info.volumes[vol].chapters[chap].originalMonth,
+                                                 info.volumes[vol].chapters[chap].originalYear)
+                else: 
+                    print "      %s Vol. %s [%s %s %s]" % (info.volumes[vol].chapters[chap].originalN,
+                                                 info.volumes[vol].chapters[chap].originalVolume,
+                                                 info.volumes[vol].chapters[chap].originalDay,
+                                                 info.volumes[vol].chapters[chap].originalMonth,
+                                                 info.volumes[vol].chapters[chap].originalYear)
+               
 
 #endregion Main
