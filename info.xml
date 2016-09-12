@@ -1,0 +1,128 @@
+<info>
+	<top>
+		<title>
+			Manga Title
+		</title>
+		<author>
+			Manga Author
+		</author>
+		<year>
+			4 digit year of release
+		</year>
+		<type>
+			The manga type
+		</type>
+		<indie>
+			Doujinshi bool
+		</indie>
+		<originals>
+			Number of original sources
+		</originals>
+		
+		<!-- This section appears based on the value given for <originals> -->
+		<original>
+			<thisOriginal>
+				# of this original
+			</thisOriginal>
+			<title>
+				Title of this original
+			</title>
+		</original>
+		
+		<scanlators>
+			# of scanlators
+		</scanlators>
+		
+		<!-- This section appears based on the value given for <scanlators> -->
+		<scanlator>
+			<thisScanlator>
+				# of this scanlator
+			</thisScanlator>
+			<title>
+				Title of this scan group
+			</title>
+			<website>
+				Website of this scan group
+			</website>
+		</scanlator>
+	</top>
+	
+	<content>
+		<finished>
+			Manga finished bool
+		</finished>
+		
+		<totalVol>
+			# volumes in this file
+		</totalVol>
+		
+		<!-- This section appears based on the value given for <totalVol> -->
+		<volume>
+			<thisVolume>
+				internal index of this volume
+			</thisVolume>
+			<volumeName>
+				Noted number of this volume
+			</volumeName>
+			<title>
+				title of this volume
+			</title>
+			<subtitle>
+				Subtitle of this volume
+			</subtitle>
+			
+			<volumeChapters>
+				# of chapters in this volume
+			</volumeChapters>
+			
+			<!-- This section appears based on the value given for <volumeChapters> -->
+			<chapter>
+				<thisChapter>
+					internal index of this chapter
+				</thisChapter>
+				<chapterName>
+					Noted number of this chapter
+				</chapterName>
+				<pageCount>
+					# of pages in this chapter
+				</pageCount>
+				<title>
+					Title of this chapter
+				</title>
+				<subtitle>
+					Subtitle of this chapter
+				</subtitle>
+				
+				<usingOriginal>
+					Original bool
+				</usingOriginal>
+				
+				<original>
+					<oroginalVolume>
+						
+					</oroginalVolume>
+					<day>
+					
+					</day>
+					<month>
+					
+					</month>
+					<year>
+					
+					</year>
+				</original>
+				
+				<scanlator>
+					<day>
+					
+					</day>
+					<month>
+					
+					</month>
+					<year>
+					
+					</year>
+				</scanlator>
+			</chapter>
+	</content>
+</info>
